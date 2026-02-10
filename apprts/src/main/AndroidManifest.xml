@@ -72,16 +72,8 @@
         <activity android:name="com.rfidresearchgroup.activities.main.PN53XNfcMain" />
         <activity android:name="com.rfidresearchgroup.activities.main.PN53XReaderMain" />
         
-        <!-- PN532 USB Connection Activity mit USB Intent-Filter -->
-        <activity android:name="com.rfidresearchgroup.activities.connect.PN532UartConnectActivity" 
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
-            </intent-filter>
-            <meta-data
-                android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
-                android:resource="@xml/device_filter" />
-        </activity>
+        <!-- PN532 USB Connection Activity -->
+        <activity android:name="com.rfidresearchgroup.activities.connect.PN532UartConnectActivity" />
         
         <activity android:name="com.rfidresearchgroup.activities.connect.ChameleonUsb2UartConnectActivity" />
         <activity android:name="com.rfidresearchgroup.activities.chameleon.ChameleonGUIActivity" />
@@ -93,7 +85,16 @@
         <activity android:name="com.rfidresearchgroup.activities.main.SimpleNameReaderActivity"
             android:screenOrientation="portrait" />
         <activity android:name="com.rfidresearchgroup.activities.main.MainMenuActivity"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="portrait"
+            android:exported="true">
+            <!-- USB Device Attached Intent-Filter -->
+            <intent-filter>
+                <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
+            </intent-filter>
+            <meta-data
+                android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
+                android:resource="@xml/device_filter" />
+        </activity>
         <activity android:name="com.rfidresearchgroup.activities.main.PadelConfigActivity"
             android:screenOrientation="portrait" />
         <activity android:name="com.rfidresearchgroup.activities.main.PadelTagAssignmentActivity"
