@@ -1,119 +1,242 @@
-<!-- def -->
-[img_pm3]: /githubsrc/rdv4x173.png
-[img_nfc]: /githubsrc/phone_nfcx173.png
-[img_122]: /githubsrc/acr122ux173.png
-[img_cml]: /githubsrc/chameleonx173.png
-[img_532]: /githubsrc/PN532x173.png
-[link_download_google]: https://play.google.com/store/apps/details?id=com.rfidresearchgroup.rfidtools&hl=en_US
-[link_download_github]: https://github.com/RfidResearchGroup/RFIDtools/releases
-[link_updated_note]: https://github.com/xianglin1998/RFIDtools/blob/master/update_note.txt
+# 🎾 Padel Tennis Scorer
 
-<p align="center" background="#000000">
-    <img align="center" src="/githubsrc/rfidx100.png" alt="RFID Tools" width="100" height="100">
+<p align="center">
+  <strong>Professional NFC-Based Padel Tennis Scoring System for Android</strong>
 </p>
 
-<h1 align="center">RFID Tools android app</h1>
+## 📱 Overview
 
-<br/>
+Padel Tennis Scorer is a modern Android application designed for professional padel tennis match tracking. Using NFC technology, players can automatically score points by scanning their assigned NFC tags, creating a seamless and hands-free scoring experience.
 
-<h4>:boom:Supported devices:dash:</h4>
+## ✨ Features
 
-The app support the following devices
+### 🏆 Core Functionality
+- **NFC Tag Scoring**: Automatic point registration via NFC tag scanning
+- **Manual Point Entry**: Manual point buttons for each team
+- **Real-Time Score Display**: Large, easy-to-read score cards showing Sets, Games, and Points
+- **Tennis Scoring Logic**: Complete implementation of tennis/padel scoring rules
+  - Regular point progression (0, 15, 30, 40, Game)
+  - Deuce and Advantage handling
+  - Golden Point mode option
+  - Tiebreak support (7 points with 2-point lead)
+- **Match Configuration**: Customizable best-of-3 or best-of-5 sets
 
-|Proxmark3   |NFC Reader  |ACS ACR-122u  |Chameleon Mini  |PN532       |  
-|----------- |----------- |------------- |--------------- |----------- |
-| ![img_pm3] | ![img_nfc] |  ![img_122]  |   ![img_cml]   | ![img_532] |
+### 🎨 User Interface
+- **Dual-Team Display**: Split-screen design with distinctive team colors (Red/Teal)
+- **Fullscreen Mode**: Immersive landscape orientation optimized for visibility
+- **Adjustable Font Size**: Slider control (10-100sp) for optimal readability
+- **Responsive Design**: Clean, modern Material Design interface
 
-|                                           PN53X Derived(Testing)                                      |
-|-------------------------------------------------------------------------------------------------------|
-| NXP_PN533    .   NXP_PN531    .   SONY_PN531    .   SCM_SCL3711    .   SCM_SCL3712    .   SONY_RCS360 |
+### ⚙️ Advanced Features
+- **Undo/Redo System**: Multi-level undo (up to 10 steps) for score corrections
+- **Match History**: Persistent storage of completed matches with full statistics
+- **Player Management**: Tag assignment and player tracking
+- **Duplicate Scan Protection**: 5-second timeout to prevent accidental double-scoring
+- **Database Integration**: Room database with Supabase sync capabilities
 
-## Application features
+### 📊 Match Statistics
+- Match duration tracking
+- Total points, games, and sets per team
+- Player-specific statistics and win records
+- Historical match database
 
-- (non-rooted) it runs on a non-rooted phone.
-- (multi device supported) app supports five device. More support in the future.
-- (easy user interface) abstract UI action, implement tag operations like read & write with simple UI.
+## 🚀 Technical Stack
 
-## Where to download app?
+- **Language**: Java
+- **Minimum SDK**: Android 21 (Lollipop)
+- **Target SDK**: Android 35
+- **Architecture**: MVP (Model-View-Presenter)
+- **Database**: Room + Supabase
+- **NFC**: Mifare Classic support via native libraries
 
-- Google playstore: [RRG RFID Tools][link_download_google]
+## 🔧 Build Information
 
-- Github release: [Go][link_download_github]
+- **Version**: 1.0.4
+- **Version Code**: 302
+- **Package**: com.padeltennis.scorer
 
+## 📥 Installation
 
-## Updated note for app.
+### Requirements
+- Android device with NFC capability
+- Android 5.0 (Lollipop) or higher
+- NFC-enabled Mifare Classic tags
 
-- [View note][link_updated_note]
+### Download
+Download the latest APK/AAB from the [Releases](https://github.com/marion909/Padel-Tennis/releases) page.
 
-## Developement tools list
+## 🎮 How to Use
 
-- IDE: Android Studio
-- CMAKE: 3.10 + 
-- NDK: 20.0.5594570 + 
+1. **Setup Match**
+   - Configure number of sets (Best of 3/5)
+   - Enable/disable Golden Point mode
+   - Assign teams and players
 
-## How to build?
-So easy, first you can get the source from GitHub:
+2. **Tag Assignment**
+   - Assign NFC tags to each player
+   - Tags are read from Mifare Classic blocks 5-6
 
-      git clone https://github.com/xianglin1998/RFIDtools RFIDtools
-  
-after git clone, open "RFIDtools" with AndroidStudio.
+3. **Score During Match**
+   - Scan your NFC tag after winning a point
+   - Or use the manual (+) button under your team
+   - Adjust font size via "Aa" button
+   - Use undo (↺) button to correct mistakes
 
-## App core implementation
+4. **Match Completion**
+   - View match results
+   - Review statistics
+   - Match is automatically saved to database
 
-Comunication: LocalSocket & LocalServerSocket(Android)
-    Linux api: socket & abstract namespace
-    
-Build: gradle & cmake
+## 🎯 Scoring Rules
 
-Framework: MVP
+### Regular Game
+- 0 → 15 → 30 → 40 → Game
+- At deuce (40-40):
+  - **Golden Point**: Next point wins the game
+  - **Advantage**: Traditional advantage scoring
 
-Now all lib is compile to "libxxx.so",  jni and ndk is basic. core is jni and ndk from java to c map.  
-~~not a linux executable file(Future)~~  
-Now, proxmark3 client is a linux executable.
+### Set Win
+- First to 6 games with 2-game lead
+- At 6-6: Tiebreak to 7 points (2-point lead required)
 
-## It's second crazy reconstruction
+### Match Win
+- Best of 3 sets: First to 2 sets
+- Best of 5 sets: First to 3 sets
 
-It should take some time, because I'm the fighting alone
-Before the reconstruction is completed, the whole project may have some big problems, such as build failure or crash at runtime.
+## 🔐 Security
 
-- 1. Redesign the UI, simplify the page hierarchy and simplify the operation logic.
-- 2. Discard the strong dependency of proxmark3 repo and use the external proxmark3 executable(and resources) instead. 
-- 3. Discard the strong dependency of pn53x tools(mfcuk, mfoc...) and use the external executable(and resources) instead.
-- 4. Optimize communication implementation and reduce communication delay.
-- 5. Add support for some ble devices.
+The app includes built-in keystore signing for release builds. Credentials are managed securely and not exposed in the public repository.
 
-## Compability list
+## 📝 Recent Updates (v1.0.4)
 
-The app has been tested with these Android phones.  Feel free to contribute with your own findings.
+- ✅ Added adjustable font size slider (10-100sp)
+- ✅ Implemented manual point buttons for each team
+- ✅ Added multi-level undo functionality (up to 10 steps)
+- ✅ Improved UI/UX with better button placement
+- ✅ Enhanced score display responsiveness
 
-- Redmi k20 pro (MIUI 10 & android 9)
-- Redmi k20 (MIUI 10 & android 9)
-- OnePlus 5T (H2OS 5.1.2 & Android 8.1.0)
+## 🛠️ Development
 
+### Building from Source
 
-## Where to buy these devices?
+```bash
+git clone https://github.com/marion909/Padel-Tennis.git
+cd Padel-Tennis
+./gradlew assembleRelease
+```
 
-- www.sneaktechnology.com
+### Building AAB for Google Play
 
-## Support
+```bash
+./gradlew bundleRelease
+```
 
-Open issues here relating to the source code,  other support questions use `android@rfidresearchgroup.com`
+The signed AAB will be located in:
+```
+apprts/build/outputs/bundle/release/apprts-release.aab
+```
 
-## Dependents
+### Project Structure
 
-Thanks:
+```
+Padel-Tennis/
+├── apprts/                    # Main application module
+│   ├── src/main/
+│   │   ├── java/              # Java source files
+│   │   │   └── com/rfidresearchgroup/activities/main/
+│   │   │       ├── PadelScoreActivity.java
+│   │   │       ├── PadelConfigActivity.java
+│   │   │       └── PadelTagAssignmentActivity.java
+│   │   ├── res/               # Android resources
+│   │   │   ├── layout/        # XML layouts
+│   │   │   └── drawable/      # Graphics & icons
+│   │   └── AndroidManifest.xml
+│   └── build.gradle           # App-level build configuration
+├── build.gradle               # Project-level build configuration
+└── README.md                  # This file
+```
 
-- Terminal: [TERMUX](https://github.com/termux)
-- Communication: [UsbSerial](https://github.com/felHR85/UsbSerial) 
+## 🧩 Key Components
 
-## Maintainer
-Feel free to contribute and make this app better!
+### Activities
+- **MainMenuActivity**: Entry point and main navigation
+- **PadelConfigActivity**: Match configuration (sets, golden point)
+- **PadelTagAssignmentActivity**: Player and NFC tag assignment
+- **PadelScoreActivity**: Live match scoring and display
+- **MatchResultActivity**: Post-match results and statistics
 
-- DXL
+### Database Entities
+- **MatchEntity**: Complete match records
+- **PlayerEntity**: Player profiles and statistics
+- **MatchPlayerEntity**: Player-match relationships
 
-## Copyright
-Copyright DXL 2019
+### Native Libraries
+- **libnfc**: NFC communication
+- **libpm3**: Proxmark3 integration
+- **libcrapto1**: Cryptography utilities
 
-## Open source license
-GPL
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+### Development Setup
+1. Clone the repository
+2. Open in Android Studio
+3. Sync Gradle dependencies
+4. Connect an NFC-enabled Android device
+5. Run the app
+
+## 📄 License
+
+This project is based on RFID Tools and includes modifications for padel tennis scoring.
+
+Original components copyright © 2019 RFID Research Group
+Padel Tennis modifications © 2026 Marion
+
+Licensed under GPL v3.0
+
+## 🙏 Credits
+
+### Dependencies
+- **Terminal**: [Termux](https://github.com/termux) - Terminal emulator components
+- **Database**: Room + Supabase - Data persistence and sync
+- **NFC**: Native RFID libraries - Tag communication
+
+### Based On
+This app is built upon the RFID Tools framework by the RFID Research Group, adapted specifically for padel tennis match scoring.
+
+## 📞 Contact & Support
+
+For issues, feature requests, or questions:
+- Open an issue on [GitHub](https://github.com/marion909/Padel-Tennis/issues)
+- Email: support@padeltennis.scorer
+
+## 🗺️ Roadmap
+
+### Planned Features
+- [ ] Bluetooth device support
+- [ ] Match export to PDF/CSV
+- [ ] Tournament mode with brackets
+- [ ] Video replay integration
+- [ ] Multi-language support (English, German, Spanish)
+- [ ] Cloud match sharing
+- [ ] Player rankings and leaderboards
+
+## 🎯 Version History
+
+### v1.0.4 (Current)
+- Added adjustable font size slider
+- Implemented manual point buttons
+- Added multi-level undo functionality
+- UI improvements
+
+### v1.0.3
+- Initial NFC scoring implementation
+- Database integration
+- Match history tracking
+
+---
+
+**Made with ❤️ for Padel Tennis enthusiasts**
+
 
