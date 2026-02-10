@@ -51,8 +51,8 @@ Padel Tennis Scorer is a modern Android application designed for professional pa
 
 ## 🔧 Build Information
 
-- **Version**: 1.0.4
-- **Version Code**: 302
+- **Version**: 1.0.5
+- **Version Code**: 303
 - **Package**: com.padeltennis.scorer
 
 ## 📥 Installation
@@ -107,13 +107,31 @@ Download the latest APK/AAB from the [Releases](https://github.com/marion909/Pad
 
 The app includes built-in keystore signing for release builds. Credentials are managed securely and not exposed in the public repository.
 
-## 📝 Recent Updates (v1.0.4)
+## 📝 Recent Updates (v1.0.5)
 
-- ✅ Added adjustable font size slider (10-100sp)
-- ✅ Implemented manual point buttons for each team
-- ✅ Added multi-level undo functionality (up to 10 steps)
-- ✅ Improved UI/UX with better button placement
-- ✅ Enhanced score display responsiveness
+### 🆕 New Features
+- ✅ **Game Timer**: Live match duration display in MM:SS format
+- ✅ **Enhanced Pause Button**: Controls both timer and NFC scanning
+- ✅ **Start Button**: Manual match start after player tag assignment
+- ✅ **Adjustable Font Size**: Slider control (10-100sp) for all scores
+- ✅ **Manual Point Buttons**: (+) buttons for each team
+- ✅ **Multi-Level Undo**: Up to 10 steps for score corrections
+
+### 🐛 Critical Bugfixes
+- ✅ **App Stability**: Fixed NFC thread management with ExecutorService
+- ✅ **Thread Safety**: Replaced HashMap with ConcurrentHashMap for UUID tracking
+- ✅ **Memory Leaks**: Proper executor shutdown in onDestroy()
+- ✅ **UI Freezes**: Eliminated main thread blocking
+
+### ⚙️ Configuration & Navigation
+- ✅ **Default Settings**: Corrected to 2 players per team, Golden Point OFF, 1 set
+- ✅ **Back Button Handling**: Confirmation dialogs in all activities
+- ✅ **Controlled Match Start**: Start button instead of automatic match start
+
+### 🎨 UI/UX Improvements
+- ✅ **Layout Proportions**: Smaller team names for better visual hierarchy
+- ✅ **Timer Display**: Positioned above set information
+- ✅ **Pause Control**: Integrated timer pause with NFC scanning pause
 
 ## 🛠️ Development
 
@@ -224,16 +242,27 @@ For issues, feature requests, or questions:
 
 ## 🎯 Version History
 
-### v1.0.4 (Current)
-- Added adjustable font size slider
-- Implemented manual point buttons
-- Added multi-level undo functionality
-- UI improvements
+### v1.0.5 (Current - 2026-02-10)
+- **Game Timer**: Live match duration with MM:SS display
+- **Enhanced Pause**: Controls timer and NFC scanning simultaneously
+- **Thread Management**: ExecutorService replaces unbounded thread creation
+- **Thread Safety**: ConcurrentHashMap for multi-threaded access
+- **Default Settings**: Corrected to 2 players, Golden Point OFF, 1 set
+- **Navigation**: Back button confirmation dialogs in all activities
+- **Match Control**: Manual start button after tag assignment
+- **Layout**: Improved visual hierarchy with smaller team names
+- **Stability**: Fixed app freezes and memory leaks
+
+### v1.0.4
+- Added adjustable font size slider (10-100sp)
+- Implemented manual point buttons for each team
+- Added multi-level undo functionality (up to 10 steps)
+- UI improvements and better button placement
 
 ### v1.0.3
 - Initial NFC scoring implementation
-- Database integration
-- Match history tracking
+- Database integration with Room + Supabase
+- Match history tracking and statistics
 
 ---
 
