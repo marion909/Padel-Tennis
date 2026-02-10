@@ -9,8 +9,8 @@ android {
         minSdkVersion 21
         targetSdkVersion 35
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
-        versionCode 302
-        versionName "1.0.4"
+        versionCode 303
+        versionName "1.0.5"
     }
     
     buildFeatures {
