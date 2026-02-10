@@ -1,16 +1,20 @@
 package com.rfidresearchgroup.activities.main;
 
+import android.app.AlertDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.TypedValue;
 import android.view.View;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -23,6 +27,7 @@ import com.rfidresearchgroup.database.entity.MatchEntity;
 import com.rfidresearchgroup.database.entity.PlayerEntity;
 import com.rfidresearchgroup.database.entity.MatchPlayerEntity;
 import com.rfidresearchgroup.repository.MatchRepository;
+import com.rfidresearchgroup.util.Commons;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -60,6 +65,8 @@ public class PadelScoreActivity extends BaseActivity {
     private TextView tvTeamASets, tvTeamBSets;
     private TextView tvSetInfo, tvGameMode;
     private Button btnPause;
+    private TextView btnSettings, btnUndo;
+    private Button btnPlusTeamA, btnPlusTeamB;
 
     // NFC Scanning
     private Handler handler = new Handler(Looper.getMainLooper());
@@ -69,6 +76,17 @@ public class PadelScoreActivity extends BaseActivity {
     private long matchStartTime;
     private int numSets;
     private Executor dbExecutor = Executors.newSingleThreadExecutor();
+    
+    // Undo functionality
+    private List<ScoreState> scoreHistory = new ArrayList<>();
+    private static final int MAX_HISTORY_SIZE = 10;
+    
+    // Font size
+    private static final String PREF_FONT_SIZE = "padel_score_font_size";
+    private static final int DEFAULT_FONT_SIZE = 48;
+    private static final int MIN_FONT_SIZE = 10;
+    private static final int MAX_FONT_SIZE = 100;
+    private int currentFontSize = DEFAULT_FONT_SIZE;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -102,6 +120,10 @@ public class PadelScoreActivity extends BaseActivity {
         tvSetInfo = findViewById(R.id.tvSetInfo);
         tvGameMode = findViewById(R.id.tvGameMode);
         btnPause = findViewById(R.id.btnPause);
+        btnSettings = findViewById(R.id.btnSettings);
+        btnUndo = findViewById(R.id.btnUndo);
+        btnPlusTeamA = findViewById(R.id.btnPlusTeamA);
+        btnPlusTeamB = findViewById(R.id.btnPlusTeamB);
 
         // Set team names
         tvTeamAName.setText(teams[0].name);
@@ -120,6 +142,27 @@ public class PadelScoreActivity extends BaseActivity {
                 Toast.makeText(this, "Scanning fortgesetzt", Toast.LENGTH_SHORT).show();
             }
         });
+        
+        // Font size button (Aa)
+        btnSettings.setOnClickListener(v -> showFontSizeDialog());
+        
+        // Undo button
+        btnUndo.setOnClickListener(v -> performUndo());
+        btnUndo.setVisibility(View.GONE); // Initially hidden
+        
+        // Plus buttons for manual point addition
+        btnPlusTeamA.setOnClickListener(v -> {
+            saveScoreState();
+            addPoint(0);
+        });
+        
+        btnPlusTeamB.setOnClickListener(v -> {
+            saveScoreState();
+            addPoint(1);
+        });
+        
+        // Load and apply saved font size
+        loadFontSize();
 
         updateScoreDisplay();
         updateMatchStatus();
@@ -157,7 +200,10 @@ public class PadelScoreActivity extends BaseActivity {
                                     } else {
                                         // Außerhalb des Timeouts - Punkt wird gezählt
                                         lastScanTimes.put(uuid, currentTime);
-                                        runOnUiThread(() -> addPoint(teamIndex));
+                                        runOnUiThread(() -> {
+                                            saveScoreState();
+                                            addPoint(teamIndex);
+                                        });
                                     }
                                 }
                             }
@@ -322,6 +368,10 @@ public class PadelScoreActivity extends BaseActivity {
     private void winMatch(int teamIndex) {
         matchEnded = true;
         isScanning = false;
+        
+        // Clear undo history on match end
+        scoreHistory.clear();
+        updateUndoButtonVisibility();
         
         Toast.makeText(this, "🏆 " + teams[teamIndex].name + " GEWINNT DAS MATCH! 🏆", Toast.LENGTH_LONG).show();
         
@@ -539,5 +589,133 @@ public class PadelScoreActivity extends BaseActivity {
         super.onDestroy();
         isScanning = false;
         handler.removeCallbacks(scanRunnable);
+    }
+    
+    // ScoreState snapshot class for undo functionality
+    private static class ScoreState {
+        int[] points;
+        int[] games;
+        int[] sets;
+        boolean isTiebreak;
+        int advantage;
+        long timestamp;
+        
+        ScoreState(int[] points, int[] games, int[] sets, boolean isTiebreak, int advantage) {
+            this.points = points.clone();
+            this.games = games.clone();
+            this.sets = sets.clone();
+            this.isTiebreak = isTiebreak;
+            this.advantage = advantage;
+            this.timestamp = System.currentTimeMillis();
+        }
+    }
+    
+    private void saveScoreState() {
+        ScoreState state = new ScoreState(points, games, sets, isTiebreak, advantage);
+        scoreHistory.add(state);
+        
+        // Limit history size
+        if (scoreHistory.size() > MAX_HISTORY_SIZE) {
+            scoreHistory.remove(0);
+        }
+        
+        updateUndoButtonVisibility();
+    }
+    
+    private void restoreScoreState(ScoreState state) {
+        points = state.points.clone();
+        games = state.games.clone();
+        sets = state.sets.clone();
+        isTiebreak = state.isTiebreak;
+        advantage = state.advantage;
+        updateScoreDisplay();
+    }
+    
+    private void performUndo() {
+        if (scoreHistory.isEmpty()) {
+            Toast.makeText(this, "Keine Änderungen zum Rückgängigmachen", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        ScoreState lastState = scoreHistory.remove(scoreHistory.size() - 1);
+        restoreScoreState(lastState);
+        updateUndoButtonVisibility();
+        Toast.makeText(this, "Änderung rückgängig gemacht", Toast.LENGTH_SHORT).show();
+    }
+    
+    private void updateUndoButtonVisibility() {
+        if (btnUndo != null) {
+            btnUndo.setVisibility(scoreHistory.isEmpty() ? View.GONE : View.VISIBLE);
+        }
+    }
+    
+    private void showFontSizeDialog() {
+        View dialogView = getLayoutInflater().inflate(android.R.layout.select_dialog_item, null);
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(50, 40, 50, 40);
+        
+        TextView label = new TextView(this);
+        label.setText("Schriftgröße: " + currentFontSize + "sp");
+        label.setTextSize(16);
+        label.setPadding(0, 0, 0, 20);
+        layout.addView(label);
+        
+        SeekBar seekBar = new SeekBar(this);
+        seekBar.setMax(MAX_FONT_SIZE - MIN_FONT_SIZE);
+        seekBar.setProgress(currentFontSize - MIN_FONT_SIZE);
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                int size = MIN_FONT_SIZE + progress;
+                label.setText("Schriftgröße: " + size + "sp");
+            }
+            
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+            
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+        layout.addView(seekBar);
+        
+        new AlertDialog.Builder(this)
+            .setTitle("Schriftgröße anpassen")
+            .setView(layout)
+            .setPositiveButton("OK", (dialog, which) -> {
+                int newSize = MIN_FONT_SIZE + seekBar.getProgress();
+                currentFontSize = newSize;
+                applyFontSize(newSize);
+                saveFontSize(newSize);
+                Toast.makeText(this, "Schriftgröße gespeichert", Toast.LENGTH_SHORT).show();
+            })
+            .setNegativeButton("Abbrechen", null)
+            .show();
+    }
+    
+    private void applyFontSize(int size) {
+        // Main score numbers
+        tvTeamAScore.setTextSize(TypedValue.COMPLEX_UNIT_SP, size);
+        tvTeamBScore.setTextSize(TypedValue.COMPLEX_UNIT_SP, size);
+        tvTeamAGames.setTextSize(TypedValue.COMPLEX_UNIT_SP, size);
+        tvTeamBGames.setTextSize(TypedValue.COMPLEX_UNIT_SP, size);
+        tvTeamASets.setTextSize(TypedValue.COMPLEX_UNIT_SP, size);
+        tvTeamBSets.setTextSize(TypedValue.COMPLEX_UNIT_SP, size);
+        
+        // Team names (50% of main size)
+        float nameSize = size * 0.5f;
+        tvTeamAName.setTextSize(TypedValue.COMPLEX_UNIT_SP, nameSize);
+        tvTeamBName.setTextSize(TypedValue.COMPLEX_UNIT_SP, nameSize);
+    }
+    
+    private void loadFontSize() {
+        SharedPreferences prefs = Commons.getPrivatePreferences(this);
+        currentFontSize = prefs.getInt(PREF_FONT_SIZE, DEFAULT_FONT_SIZE);
+        applyFontSize(currentFontSize);
+    }
+    
+    private void saveFontSize(int size) {
+        SharedPreferences prefs = Commons.getPrivatePreferences(this);
+        prefs.edit().putInt(PREF_FONT_SIZE, size).apply();
     }
 }
