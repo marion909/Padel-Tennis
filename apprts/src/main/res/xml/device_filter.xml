@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- USB-to-Serial Adapter: FTDI FT232R Com -->
+    <usb-device
+        product-id="24577"
+        vendor-id="1027" />
+
+    <!-- USB-to-Serial Adapter: FTDI FT231X -->
+    <usb-device
+        product-id="24597"
+        vendor-id="1027" />
+
+    <!-- Arduino USB Devices -->
+    <usb-device vendor-id="9025" />
+
+    <!-- Teensyduino USB Devices -->
+    <usb-device
+        product-id="1155"
+        vendor-id="5824" />
+
+    <!-- CP210x USB-to-UART Bridge -->
+    <usb-device
+        product-id="60000"
+        vendor-id="4292" />
+
+    <!-- Prolific PL2303 USB-to-Serial -->
+    <usb-device
+        product-id="8963"
+        vendor-id="1659" />
+
+    <!-- CH340 USB-to-Serial Adapter -->
+    <usb-device
+        product-id="29987"
+        vendor-id="6790" />
+</resources>

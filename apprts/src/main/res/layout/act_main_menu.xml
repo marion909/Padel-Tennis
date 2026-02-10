@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="32dp"
+    android:background="#1E1E1E">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="🎾 Padel Tennis"
+        android:textSize="36sp"
+        android:textStyle="bold"
+        android:textColor="#FFFFFF"
+        android:layout_marginBottom="64dp" />
+
+    <Button
+        android:id="@+id/btn_register_player"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:text="Spieler registrieren"
+        android:textSize="20sp"
+        android:textColor="#FFFFFF"
+        android:textStyle="bold"
+        android:background="@drawable/btn_rounded_teal"
+        android:layout_marginBottom="24dp" />
+
+    <Button
+        android:id="@+id/btn_padel_tennis"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:text="Padel Tennis"
+        android:textSize="20sp"
+        android:textColor="#FFFFFF"
+        android:textStyle="bold"
+        android:background="@drawable/btn_rounded_teal"
+        android:layout_marginBottom="24dp" />
+
+    <Button
+        android:id="@+id/btn_statistics"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:text="📊 Statistiken"
+        android:textSize="20sp"
+        android:textColor="#FFFFFF"
+        android:textStyle="bold"
+        android:background="@drawable/btn_rounded_teal" />
+
+</LinearLayout>

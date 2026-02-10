@@ -1,0 +1,5 @@
+include ':apprts', ':libcml', ':libcom', ':libnfc'
+include ':libflasher', ':libutils', ':libtag'
+include ':termux-app', ':terminal-emulator', ':terminal-view'
+include ':libcrapto1', ':libmfkey'
+include ':libpm3'
