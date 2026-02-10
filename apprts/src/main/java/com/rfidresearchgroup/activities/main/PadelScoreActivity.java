@@ -709,13 +709,13 @@ public class PadelScoreActivity extends BaseActivity {
     }
     
     private void loadFontSize() {
-        SharedPreferences prefs = Commons.getPrivatePreferences(this);
+        SharedPreferences prefs = Commons.getPrivatePreferences();
         currentFontSize = prefs.getInt(PREF_FONT_SIZE, DEFAULT_FONT_SIZE);
         applyFontSize(currentFontSize);
     }
     
     private void saveFontSize(int size) {
-        SharedPreferences prefs = Commons.getPrivatePreferences(this);
+        SharedPreferences prefs = Commons.getPrivatePreferences();
         prefs.edit().putInt(PREF_FONT_SIZE, size).apply();
     }
 }
