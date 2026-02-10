@@ -1,5 +1,6 @@
 package com.rfidresearchgroup.activities.main;
 
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
