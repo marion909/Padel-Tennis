@@ -29,6 +29,15 @@ public class DeviceConnectNewFragment
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        // Refresh device list when fragment becomes visible again
+        if (presenters != null && !presenters.isEmpty()) {
+            onDiscovery();
+        }
+    }
+
+    @Override
     protected void initResource() {
         super.initResource();
         if (models != null) {

@@ -50,6 +50,15 @@ public class DeviceConnectAllFragment
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        // Refresh device list when fragment becomes visible again
+        if (presenters != null && !presenters.isEmpty()) {
+            onDiscovery();
+        }
+    }
+
+    @Override
     protected void onDiscovery() {
         for (DeviceExistsPresenter presenter : presenters) {
             //triggere discovery für USB-Geräte
