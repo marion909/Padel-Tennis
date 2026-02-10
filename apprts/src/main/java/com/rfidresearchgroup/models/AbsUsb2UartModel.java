@@ -43,10 +43,21 @@ public abstract class AbsUsb2UartModel extends AbstractDeviceModel<String, UsbMa
     public void discovery(Context context) {
         if (mDI != null) {
             UsbManager manager = mDI.getAdapter();
-            if (manager != null)
-                if (manager.getDeviceList().size() > 0) {
-                    AppUtil.getInstance().getApp().sendBroadcast(new Intent(UsbSerialControl.ACTION_BROADCAST));
+            if (manager != null && manager.getDeviceList() != null && manager.getDeviceList().size() > 0) {
+                // Directly notify about available USB devices instead of just sending broadcast
+                // This ensures devices are shown immediately even if already connected
+                android.util.Log.d("AbsUsb2UartModel", "USB devices found: " + manager.getDeviceList().size());
+                
+                // Trigger the attach callback for the first available device
+                // This makes the device appear in the list
+                DevCallback<String> callback = getDevCallback();
+                if (callback != null) {
+                    callback.onAttach("USB2UART");
                 }
+                
+                // Also send broadcast as fallback for the connection mechanism
+                AppUtil.getInstance().getApp().sendBroadcast(new Intent(UsbSerialControl.ACTION_BROADCAST));
+            }
         }
     }
 
