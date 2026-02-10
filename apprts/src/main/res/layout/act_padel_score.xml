@@ -33,6 +33,16 @@
             android:layout_marginEnd="12dp">
 
             <TextView
+                android:id="@+id/tvGameTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="00:00"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="#4DD0E1"
+                android:layout_marginBottom="4dp" />
+
+            <TextView
                 android:id="@+id/tvSetInfo"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -105,7 +115,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Team A"
-                    android:textSize="24sp"
+                    android:textSize="18sp"
                     android:textStyle="bold"
                     android:textColor="#FFFFFF"
                     android:layout_marginBottom="32dp" />
@@ -237,7 +247,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Team B"
-                    android:textSize="24sp"
+                    android:textSize="18sp"
                     android:textStyle="bold"
                     android:textColor="#FFFFFF"
                     android:layout_marginBottom="32dp" />

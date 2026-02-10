@@ -65,7 +65,7 @@ public class PadelScoreActivity extends BaseActivity {
     private TextView tvTeamAScore, tvTeamBScore;
     private TextView tvTeamAGames, tvTeamBGames;
     private TextView tvTeamASets, tvTeamBSets;
-    private TextView tvSetInfo, tvGameMode;
+    private TextView tvSetInfo, tvGameMode, tvGameTime;
     private Button btnPause;
     private TextView btnSettings, btnUndo;
     private Button btnPlusTeamA, btnPlusTeamB;
@@ -79,6 +79,22 @@ public class PadelScoreActivity extends BaseActivity {
     private long matchStartTime;
     private int numSets;
     private Executor dbExecutor = Executors.newSingleThreadExecutor();
+    
+    // Game Timer
+    private long elapsedTimeMs = 0L;
+    private long lastPauseTime = 0L;
+    private volatile boolean isPaused = false;
+    private volatile boolean timerStarted = false;
+    private Runnable timerRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (!isPaused && !matchEnded && timerStarted) {
+                elapsedTimeMs += 1000;
+                updateTimerDisplay();
+                handler.postDelayed(this, 1000);
+            }
+        }
+    };
     
     // Undo functionality
     private List<ScoreState> scoreHistory = new ArrayList<>();
@@ -122,6 +138,7 @@ public class PadelScoreActivity extends BaseActivity {
         tvTeamBSets = findViewById(R.id.tvTeamBSets);
         tvSetInfo = findViewById(R.id.tvSetInfo);
         tvGameMode = findViewById(R.id.tvGameMode);
+        tvGameTime = findViewById(R.id.tvGameTime);
         btnPause = findViewById(R.id.btnPause);
         btnSettings = findViewById(R.id.btnSettings);
         btnUndo = findViewById(R.id.btnUndo);
@@ -132,17 +149,22 @@ public class PadelScoreActivity extends BaseActivity {
         tvTeamAName.setText(teams[0].name);
         tvTeamBName.setText(teams[1].name);
 
-        // Pause button (toggle scanning)
+        // Pause button (toggle scanning and timer)
         btnPause.setOnClickListener(v -> {
-            if (isScanning) {
-                isScanning = false;
-                btnPause.setText("▶");
-                Toast.makeText(this, "Scanning pausiert", Toast.LENGTH_SHORT).show();
-            } else {
+            if (isPaused) {
+                // Resume
+                isPaused = false;
                 isScanning = true;
                 btnPause.setText("⏸");
                 startNfcScanning();
-                Toast.makeText(this, "Scanning fortgesetzt", Toast.LENGTH_SHORT).show();
+                handler.post(timerRunnable);
+                Toast.makeText(this, "Match fortgesetzt", Toast.LENGTH_SHORT).show();
+            } else {
+                // Pause
+                isPaused = true;
+                isScanning = false;
+                btnPause.setText("▶");
+                Toast.makeText(this, "Match pausiert", Toast.LENGTH_SHORT).show();
             }
         });
         
@@ -166,6 +188,11 @@ public class PadelScoreActivity extends BaseActivity {
         
         // Load and apply saved font size
         loadFontSize();
+        
+        // Start game timer
+        timerStarted = true;
+        handler.post(timerRunnable);
+        updateTimerDisplay();
 
         updateScoreDisplay();
         updateMatchStatus();
@@ -372,6 +399,8 @@ public class PadelScoreActivity extends BaseActivity {
     private void winMatch(int teamIndex) {
         matchEnded = true;
         isScanning = false;
+        timerStarted = false;
+        isPaused = true;
         
         // Clear undo history on match end
         scoreHistory.clear();
@@ -596,6 +625,7 @@ public class PadelScoreActivity extends BaseActivity {
             .setPositiveButton("Ja, beenden", (dialog, which) -> {
                 isScanning = false;
                 matchEnded = true;
+                timerStarted = false;
                 Intent intent = new Intent(this, MainMenuActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);
@@ -604,13 +634,25 @@ public class PadelScoreActivity extends BaseActivity {
             .setNegativeButton("Abbrechen", null)
             .show();
     }
+    
+    private void updateTimerDisplay() {
+        long totalSeconds = elapsedTimeMs / 1000;
+        long minutes = totalSeconds / 60;
+        long seconds = totalSeconds % 60;
+        String timeString = String.format("%02d:%02d", minutes, seconds);
+        if (tvGameTime != null) {
+            tvGameTime.setText(timeString);
+        }
+    }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         isScanning = false;
         matchEnded = true;
+        timerStarted = false;
         handler.removeCallbacks(scanRunnable);
+        handler.removeCallbacks(timerRunnable);
         
         // Shutdown NFC executor thread pool
         nfcExecutor.shutdown();
