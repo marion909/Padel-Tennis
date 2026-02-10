@@ -1,5 +1,6 @@
 package com.rfidresearchgroup.activities.main;
 
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
@@ -39,5 +40,17 @@ public class MainMenuActivity extends BaseActivity {
             Intent intent = new Intent(this, StatisticsActivity.class);
             startActivity(intent);
         });
+    }
+    
+    @Override
+    public void onBackPressed() {
+        new AlertDialog.Builder(this)
+            .setTitle("App beenden?")
+            .setMessage("Möchten Sie die App wirklich beenden?")
+            .setPositiveButton("Ja", (dialog, which) -> {
+                finishAffinity(); // Close all activities
+            })
+            .setNegativeButton("Nein", null)
+            .show();
     }
 }

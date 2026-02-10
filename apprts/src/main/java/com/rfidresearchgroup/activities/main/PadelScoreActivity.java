@@ -32,11 +32,13 @@ import com.rfidresearchgroup.util.Commons;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class PadelScoreActivity extends BaseActivity {
 
@@ -48,14 +50,14 @@ public class PadelScoreActivity extends BaseActivity {
     private SpclMf spclMf;
     
     // Timeout tracking für doppelte Scans
-    private Map<String, Long> lastScanTimes = new HashMap<>();
+    private final Map<String, Long> lastScanTimes = new ConcurrentHashMap<>();
 
     // Score tracking
     private int[] points = new int[2];      // 0, 15, 30, 40, or special values for deuce/advantage
     private int[] games = new int[2];
     private int[] sets = new int[2];
-    private boolean isTiebreak = false;
-    private boolean matchEnded = false;
+    private volatile boolean isTiebreak = false;
+    private volatile boolean matchEnded = false;
     private int advantage = -1;             // -1: no advantage, 0: team 0, 1: team 1
 
     // UI Elements
@@ -70,7 +72,8 @@ public class PadelScoreActivity extends BaseActivity {
 
     // NFC Scanning
     private Handler handler = new Handler(Looper.getMainLooper());
-    private boolean isScanning = false;
+    private volatile boolean isScanning = false;
+    private ExecutorService nfcExecutor = Executors.newSingleThreadExecutor();
     
     // Match tracking
     private long matchStartTime;
@@ -178,7 +181,8 @@ public class PadelScoreActivity extends BaseActivity {
         public void run() {
             if (!isScanning || matchEnded) return;
 
-            new Thread(() -> {
+            // Use thread pool instead of creating new threads
+            nfcExecutor.submit(() -> {
                 try {
                     if (spclMf.scanning()) {
                         if (spclMf.connect()) {
@@ -212,12 +216,12 @@ public class PadelScoreActivity extends BaseActivity {
                 } catch (Exception e) {
                     // Silent catch - scanning continues
                 }
-                
-                // Continue scanning after delay
-                if (isScanning && !matchEnded) {
-                    handler.postDelayed(scanRunnable, 500);
-                }
-            }).start();
+            });
+            
+            // Continue scanning after delay
+            if (isScanning && !matchEnded) {
+                handler.postDelayed(scanRunnable, 500);
+            }
         }
     };
 
@@ -583,12 +587,41 @@ public class PadelScoreActivity extends BaseActivity {
             hideSystemUI();
         }
     }
+    
+    @Override
+    public void onBackPressed() {
+        new AlertDialog.Builder(this)
+            .setTitle("Match beenden?")
+            .setMessage("Möchten Sie das laufende Match wirklich beenden? Der aktuelle Spielstand geht verloren.")
+            .setPositiveButton("Ja, beenden", (dialog, which) -> {
+                isScanning = false;
+                matchEnded = true;
+                Intent intent = new Intent(this, MainMenuActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+                finish();
+            })
+            .setNegativeButton("Abbrechen", null)
+            .show();
+    }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         isScanning = false;
+        matchEnded = true;
         handler.removeCallbacks(scanRunnable);
+        
+        // Shutdown NFC executor thread pool
+        nfcExecutor.shutdown();
+        try {
+            if (!nfcExecutor.awaitTermination(2, TimeUnit.SECONDS)) {
+                nfcExecutor.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            nfcExecutor.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
     }
     
     // ScoreState snapshot class for undo functionality

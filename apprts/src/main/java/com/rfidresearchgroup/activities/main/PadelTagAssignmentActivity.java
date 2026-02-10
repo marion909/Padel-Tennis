@@ -15,6 +15,9 @@ import com.rfidresearchgroup.mifare.MifareClassicUtils;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class PadelTagAssignmentActivity extends BaseActivity {
 
@@ -28,6 +31,7 @@ public class PadelTagAssignmentActivity extends BaseActivity {
     private List<TeamData> teams = new ArrayList<>();
     private int currentPlayerIndex = 0;
     private int totalPlayers = 0;
+    private ExecutorService nfcExecutor = Executors.newSingleThreadExecutor();
     
     // UI Elements
     private ProgressBar progressBar;
@@ -65,8 +69,6 @@ public class PadelTagAssignmentActivity extends BaseActivity {
         tvPlayerName = findViewById(R.id.tvPlayerName);
         btnScan = findViewById(R.id.btnScan);
         tvStatus = findViewById(R.id.tvStatus);
-        
-        btnScan.setOnClickListener(v -> scanCurrentPlayer());
     }
 
     private void setupTeams() {
@@ -87,7 +89,19 @@ public class PadelTagAssignmentActivity extends BaseActivity {
 
     private void showCurrentPlayer() {
         if (currentPlayerIndex >= totalPlayers) {
-            startMatch();
+            // All players assigned - show start button
+            tvProgress.setText("Alle Spieler registriert!");
+            progressBar.setProgress(totalPlayers);
+            
+            tvTeamBadge.setVisibility(android.view.View.GONE);
+            tvPlayerName.setText("✅ Bereit zum Start");
+            tvPlayerName.setTextColor(0xFF4DD0E1);
+            
+            btnScan.setText("Match starten");
+            btnScan.setOnClickListener(v -> startMatch());
+            btnScan.setEnabled(true);
+            
+            tvStatus.setVisibility(android.view.View.GONE);
             return;
         }
         
@@ -103,14 +117,19 @@ public class PadelTagAssignmentActivity extends BaseActivity {
         progressBar.setMax(totalPlayers);
         progressBar.setProgress(currentPlayerIndex + 1);
         
+        tvTeamBadge.setVisibility(android.view.View.VISIBLE);
         tvTeamBadge.setText(currentTeam.name);
         tvTeamBadge.setBackgroundResource(teamIndex == 0 ? R.drawable.badge_team_a : R.drawable.badge_team_b);
+        tvPlayerName.setTextColor(0xFFFFFFFF);
         
         String playerLabel = currentTeam.name.replace("Team ", "Player ") + playerNum;
         tvPlayerName.setText(playerLabel);
         
-        tvStatus.setVisibility(android.view.View.GONE);
+        btnScan.setText("Tap to Scan NFC Tag");
+        btnScan.setOnClickListener(v -> scanCurrentPlayer());
         btnScan.setEnabled(true);
+        
+        tvStatus.setVisibility(android.view.View.GONE);
     }
 
     private void scanCurrentPlayer() {
@@ -118,7 +137,8 @@ public class PadelTagAssignmentActivity extends BaseActivity {
         tvStatus.setVisibility(android.view.View.VISIBLE);
         tvStatus.setText("Scanning...");
         
-        new Thread(() -> {
+        // Use thread pool instead of creating new thread
+        nfcExecutor.submit(() -> {
             try {
                 // Scan for tag
                 if (!spclMf.scanning()) {
@@ -243,7 +263,7 @@ public class PadelTagAssignmentActivity extends BaseActivity {
                     btnScan.setEnabled(true);
                 });
             }
-        }).start();
+        });
     }
 
     private void skipCurrentPlayer() {
@@ -272,6 +292,37 @@ public class PadelTagAssignmentActivity extends BaseActivity {
         intent.putExtra("TEAMS", teams.toArray(new TeamData[0]));
         startActivity(intent);
         finish();
+    }
+    
+    @Override
+    public void onBackPressed() {
+        new AlertDialog.Builder(this)
+            .setTitle("Registrierung abbrechen?")
+            .setMessage("Möchten Sie die Spieler-Registrierung abbrechen?")
+            .setPositiveButton("Ja", (dialog, which) -> {
+                Intent intent = new Intent(this, MainMenuActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+                finish();
+            })
+            .setNegativeButton("Nein", null)
+            .show();
+    }
+    
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        
+        // Shutdown NFC executor thread pool
+        nfcExecutor.shutdown();
+        try {
+            if (!nfcExecutor.awaitTermination(2, TimeUnit.SECONDS)) {
+                nfcExecutor.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            nfcExecutor.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
     }
 
     // Data classes

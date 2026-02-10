@@ -99,4 +99,9 @@ public class PadelConfigActivity extends BaseActivity {
             startActivity(intent);
         });
     }
+    
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+    }
 }
