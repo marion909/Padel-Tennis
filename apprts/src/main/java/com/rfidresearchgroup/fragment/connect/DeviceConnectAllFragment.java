@@ -67,6 +67,11 @@ public class DeviceConnectAllFragment
         }
     }
 
+    // Public method to trigger discovery from outside
+    public void refreshDevices() {
+        onDiscovery();
+    }
+
     @Override
     public void showExistsDev(DevBean[] devList) {
         super.showExistsDev(devList);

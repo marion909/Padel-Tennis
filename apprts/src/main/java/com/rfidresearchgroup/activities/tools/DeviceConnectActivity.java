@@ -70,8 +70,19 @@ public abstract class DeviceConnectActivity
 
         vpContainer.setAdapter(mAdapter);
         
-        // Show only new devices (first page)
-        vpContainer.setCurrentItem(0);
+        // Show all devices (second page) instead of new devices
+        // This ensures already connected devices are shown immediately
+        vpContainer.setCurrentItem(1);
+        
+        // Force discovery of already connected devices after a short delay
+        vpContainer.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (allDevFragment instanceof DeviceConnectAllFragment) {
+                    ((DeviceConnectAllFragment) allDevFragment).refreshDevices();
+                }
+            }
+        }, 200);
     }
 
     @Override
